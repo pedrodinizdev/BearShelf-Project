@@ -1,14 +1,19 @@
 package com.BearShelf.projeto.controllers;
 
 import org.springframework.web.bind.annotation.*;
+import com.BearShelf.projeto.entity.Categoria;
+import com.BearShelf.projeto.service.CategoriaService;
 
-@RequestMapping("/categoria")
 @RestController
+@RequestMapping("/categoria")
 public class CategoriaController {
 
     @GetMapping()
-    public String inforCategoria(){
-        return "Ola";
+    public Categoria inforCategoria() {
+
+        CategoriaService service = new CategoriaService();
+
+        return service.buscarCategoria();
     }
 
     @PostMapping()
