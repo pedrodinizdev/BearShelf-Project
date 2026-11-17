@@ -6,8 +6,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
+
 @Service
 public class CategoriaService {
+    // get
     private final CategoriaRepository repository;
 
     public CategoriaService(CategoriaRepository repository) {
@@ -19,5 +22,28 @@ public class CategoriaService {
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Categoria não encontrada"));
+    }
+
+    public List<Categoria> listarCategorias() {
+        return repository.findAll();
+    }
+
+    // post
+    public Categoria cadastrarCategoria(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "O nome da categoria é obrigatório"
+            );
+        }
+
+        String nomeTratado = nome.strip();
+
+        if (nomeTratado.length() > 255) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome deve ter no máximo 255 caracteres");
+        }
+
+        Categoria categoria = new Categoria(nomeTratado);
+
+        return repository.save(categoria);
     }
 }

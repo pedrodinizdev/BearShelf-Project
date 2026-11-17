@@ -1,8 +1,13 @@
 package com.BearShelf.projeto.controller;
 
+import com.BearShelf.projeto.dto.CategoriaCadastroRequest;
+import com.BearShelf.projeto.repository.CategoriaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import com.BearShelf.projeto.entity.Categoria;
 import com.BearShelf.projeto.service.CategoriaService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/categoria")
@@ -13,6 +18,11 @@ public class CategoriaController {
         this.service = service;
     }
 
+    @GetMapping
+    public List<Categoria> listarCategorias() {
+        return service.listarCategorias();
+    }
+
     @GetMapping("/{id}")
     public Categoria inforCategoria(@PathVariable int id) {
 
@@ -21,9 +31,10 @@ public class CategoriaController {
         return service.buscarCategoria(id);
     }
 
-    @PostMapping()
-    public void adicionarCategoria(){
-
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public Categoria adicionarCategoria(@RequestBody CategoriaCadastroRequest dados){
+        return service.cadastrarCategoria(dados.nome());
     }
 
     @DeleteMapping()

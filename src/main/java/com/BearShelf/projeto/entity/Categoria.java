@@ -1,22 +1,24 @@
 package com.BearShelf.projeto.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "categoria")
 public class Categoria {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_categoria")
     private int id;
 
-    @Column(name = "nome")
+    @Column(name = "nome", nullable = false, length = 255)
     private String nome;
 
     protected Categoria() {
+    }
+
+    public Categoria(String nome) {
+        this.nome = nome;
     }
 
     public Categoria(int id, String nome) {
