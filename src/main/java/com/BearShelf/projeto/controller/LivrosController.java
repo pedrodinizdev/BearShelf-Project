@@ -1,4 +1,4 @@
-package com.BearShelf.projeto.controllers;
+package com.BearShelf.projeto.controller;
 
 
 import org.springframework.web.bind.annotation.*;

@@ -1,4 +1,4 @@
-package com.BearShelf.projeto.controllers;
+package com.BearShelf.projeto.controller;
 
 import org.springframework.web.bind.annotation.*;
 import com.BearShelf.projeto.entity.Categoria;
@@ -7,13 +7,18 @@ import com.BearShelf.projeto.service.CategoriaService;
 @RestController
 @RequestMapping("/categoria")
 public class CategoriaController {
+    private final CategoriaService service;
 
-    @GetMapping()
-    public Categoria inforCategoria() {
+    public CategoriaController(CategoriaService service) {
+        this.service = service;
+    }
 
-        CategoriaService service = new CategoriaService();
+    @GetMapping("/{id}")
+    public Categoria inforCategoria(@PathVariable int id) {
 
-        return service.buscarCategoria();
+        // CategoriaService service = new CategoriaService();
+
+        return service.buscarCategoria(id);
     }
 
     @PostMapping()
