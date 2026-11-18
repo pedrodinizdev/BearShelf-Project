@@ -46,4 +46,27 @@ public class CategoriaService {
 
         return repository.save(categoria);
     }
+    public Categoria atualizarCategoria(int id, String nome) {
+        Categoria categoria = buscarCategoria(id);
+
+        if (nome == null || nome.isBlank()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "O nome da categoria é obrigatório"
+            );
+        }
+
+        String nomeTratado = nome.strip();
+
+        if (nomeTratado.length() > 255) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "O nome deve ter no máximo 255 caracteres"
+            );
+        }
+
+        categoria.atualizarNome(nomeTratado);
+
+        return repository.save(categoria);
+    }
 }

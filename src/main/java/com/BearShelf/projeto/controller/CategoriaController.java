@@ -1,5 +1,6 @@
 package com.BearShelf.projeto.controller;
 
+import com.BearShelf.projeto.dto.CategoriaAtualizacaoRequest;
 import com.BearShelf.projeto.dto.CategoriaCadastroRequest;
 import com.BearShelf.projeto.repository.CategoriaRepository;
 import org.springframework.http.HttpStatus;
@@ -42,9 +43,9 @@ public class CategoriaController {
 
     }
 
-    @PutMapping()
-    public void mudarTodasAsInformacoes(){
-
+    @PutMapping("/{id}")
+    public Categoria atualizarCategoria(@PathVariable int id, @RequestBody CategoriaAtualizacaoRequest dados) {
+        return service.atualizarCategoria(id, dados.nome());
     }
 
     @PatchMapping
