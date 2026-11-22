@@ -2,6 +2,7 @@ package com.BearShelf.projeto.service;
 
 import com.BearShelf.projeto.entity.Categoria;
 import com.BearShelf.projeto.repository.CategoriaRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -68,5 +69,16 @@ public class CategoriaService {
         categoria.atualizarNome(nomeTratado);
 
         return repository.save(categoria);
+    }
+
+    public void deletarCategoria(int id) {
+        Categoria categoria = buscarCategoria(id);
+
+        try {
+            repository.delete(categoria);
+        } catch (DataIntegrityViolationException erro) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Não foi possível excluir a categoria por restrição do banco.", erro);
+        }
     }
 }

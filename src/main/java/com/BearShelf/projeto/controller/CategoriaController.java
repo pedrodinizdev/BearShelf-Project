@@ -38,9 +38,10 @@ public class CategoriaController {
         return service.cadastrarCategoria(dados.nome());
     }
 
-    @DeleteMapping()
-    public void deletarCategoria(){
-
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletarCategoria(@PathVariable int id) {
+        service.deletarCategoria(id);
     }
 
     @PutMapping("/{id}")
