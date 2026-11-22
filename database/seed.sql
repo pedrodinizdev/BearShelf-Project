@@ -98,7 +98,7 @@ VALUES
   (20, 15), -- Freakonomics          → Steven Levitt
   (20, 16), -- Freakonomics          → Stephen Dubner
   (21, 17), -- Entendendo Algoritmos → Aditya Y. Bhargava
-  (22, 18); -- Sistemas de BD        → Ramez Elmasri
+  (22, 18), -- Sistemas de BD        → Ramez Elmasri
   (22, 19); -- Sistemas de BD → Shamkant Navathe
   
 

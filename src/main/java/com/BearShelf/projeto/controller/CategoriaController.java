@@ -48,11 +48,4 @@ public class CategoriaController {
     public Categoria atualizarCategoria(@PathVariable int id, @RequestBody CategoriaAtualizacaoRequest dados) {
         return service.atualizarCategoria(id, dados.nome());
     }
-
-    @PatchMapping
-    public void mudarAlgumaInfo(){
-
-    }
-
-
 }

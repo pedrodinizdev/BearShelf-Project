@@ -39,8 +39,8 @@ public class CategoriaService {
 
         String nomeTratado = nome.strip();
 
-        if (nomeTratado.length() > 255) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome deve ter no máximo 255 caracteres");
+        if (nomeTratado.length() > 50) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome deve ter no máximo 50 caracteres");
         }
 
         Categoria categoria = new Categoria(nomeTratado);
@@ -59,10 +59,10 @@ public class CategoriaService {
 
         String nomeTratado = nome.strip();
 
-        if (nomeTratado.length() > 255) {
+        if (nomeTratado.length() > 50) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
-                    "O nome deve ter no máximo 255 caracteres"
+                    "O nome deve ter no máximo 50 caracteres"
             );
         }
 

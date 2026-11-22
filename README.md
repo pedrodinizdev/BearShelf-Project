@@ -39,4 +39,8 @@ O objetivo é permitir que usuários organizem seus livros digitais e realizem a
 
 ## Status
 
-Projeto em desenvolvimento.
+Projeto em desenvolvimento. No momento, os CRUDs de Categoria e Autor estão implementados. Livro, Usuário, Biblioteca e Leitura ainda estão em construção.
+
+Para entender a organização do código, as decisões já tomadas e as pendências conhecidas, consulte o [guia de desenvolvimento](docs/guia-de-desenvolvimento.md).
+
+Os modelos conceitual e lógico do banco também estão disponíveis na pasta [`docs`](docs/).
