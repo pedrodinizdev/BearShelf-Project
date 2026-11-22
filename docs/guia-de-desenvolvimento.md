@@ -23,7 +23,7 @@ O código Java fica em `src/main/java/com/BearShelf/projeto` e segue esta separa
 
 ```text
 controller/  rotas HTTP e leitura dos dados da requisição
-dto/         formatos usados na entrada da API
+dto/         formatos usados na entrada e na resposta da API
 entity/      mapeamento das tabelas com JPA
 repository/  acesso aos dados com Spring Data
 service/     validações e regras de negócio
@@ -91,27 +91,65 @@ Regras atuais:
 
 As rotas de Autor foram testadas manualmente pelo Swagger.
 
+### Livro
+
+O cadastro de Livro está implementado:
+
+| Método | Rota | Ação |
+| --- | --- | --- |
+| `POST` | `/livro` | Cadastra um livro com autores e categorias existentes |
+
+Exemplo de cadastro:
+
+```json
+{
+  "titulo": "O Bom Presságio",
+  "anoPublicacao": 1990,
+  "descricao": "Uma comédia sobre o fim do mundo.",
+  "totalPaginas": 413,
+  "autorIds": [13, 14],
+  "categoriaIds": [1, 2]
+}
+```
+
+Regras atuais:
+
+- o título é obrigatório e pode ter até 200 caracteres;
+- o total de páginas é obrigatório e deve ser maior que zero;
+- o ano de publicação e a descrição são opcionais;
+- o livro deve ter pelo menos um autor e uma categoria;
+- todos os IDs de autores e categorias precisam existir;
+- o ID do livro é gerado pelo banco.
+
+O relacionamento é unidirecional no Java: Livro possui conjuntos de autores e categorias. As tabelas `Livro_Autor` e `Livro_Categoria` guardam essas associações no banco.
+
+Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos autores e categorias. O cadastro foi testado manualmente pelo Swagger.
+
 ## Decisões atuais
 
 - Os endpoints usam os nomes das entidades no singular: `/autor`, `/categoria` e `/livro`.
 - Cadastro e atualização recebem DTOs, em vez de receber diretamente as entidades JPA.
+- As respostas de Livro usam DTOs para controlar os dados devolvidos no JSON.
 - As entidades usam os nomes de tabelas e colunas que já existem em `schema.sql`.
 - Livro poderá ter mais de um autor e mais de uma categoria.
-- No futuro CRUD de Livro, a requisição deverá informar IDs de autores e categorias já cadastrados. O service será responsável por buscar e validar esses registros.
+- O cadastro de Livro informa IDs de autores e categorias já cadastrados. O service busca e valida esses registros.
+- Autor e Categoria não possuem coleções de livros. Pesquisas de livros por autor ou categoria partirão do `LivroRepository`.
+- O ano de publicação pode ficar vazio para permitir o cadastro de obras ainda não lançadas.
+- Livro exige pelo menos uma categoria como regra da aplicação.
 - Não estamos usando exclusão em cascata nas tabelas associativas. Um autor ou uma categoria vinculada a um livro não deve ser excluído silenciosamente.
 - Os scripts da pasta `database` são a referência do banco, mas não são executados automaticamente pela aplicação como migrations.
 
 ## Estado das próximas partes
 
-- `Livro`: controller provisório e entidade vazia;
+- `Livro`: cadastro implementado; consultas, atualizações e exclusão ainda não foram feitas;
 - `Usuario`: controller provisório;
 - `Biblioteca` e `Leitura`: ainda não possuem implementação Java.
 
-A ordem sugerida para continuar é definir os formatos de resposta da API e depois implementar Livro. Livro depende de Autor e Categoria, então esses dois módulos devem estar estáveis primeiro.
+A próxima etapa de Livro é implementar as consultas antes das atualizações e da exclusão.
 
 ## Pendências
 
-- Antes de mapear os relacionamentos de Livro, precisamos definir os DTOs de resposta. Retornar entidades relacionadas diretamente pode causar recursão no JSON.
+- Implementar `GET`, `PUT`, `PATCH` e `DELETE` de Livro.
 
 ## Cuidados ao trabalhar no projeto
 

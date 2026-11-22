@@ -39,7 +39,7 @@ O objetivo é permitir que usuários organizem seus livros digitais e realizem a
 
 ## Status
 
-Projeto em desenvolvimento. No momento, os CRUDs de Categoria e Autor estão implementados. Livro, Usuário, Biblioteca e Leitura ainda estão em construção.
+Projeto em desenvolvimento. No momento, os CRUDs de Categoria e Autor e o cadastro de Livro estão implementados. As demais operações de Livro, Usuário, Biblioteca e Leitura ainda estão em construção.
 
 Para entender a organização do código, as decisões já tomadas e as pendências conhecidas, consulte o [guia de desenvolvimento](docs/guia-de-desenvolvimento.md).
 

@@ -34,12 +34,14 @@ public class AutorController {
 
     @GetMapping("/{id}")
     public Autor buscarAutor(@PathVariable("id") int id) {
+
         return service.buscarAutor(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public Autor adicionarAutor(@RequestBody AutorCadastroRequest dados) {
+
         return service.cadastrarAutor(dados.nome(), dados.nacionalidade());
     }
 
@@ -54,6 +56,7 @@ public class AutorController {
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deletarAutor(@PathVariable("id") int id) {
+
         service.deletarAutor(id);
     }
 }
