@@ -96,4 +96,20 @@ public class Livro {
     public Set<Categoria> getCategorias() {
         return categorias;
     }
+
+    public void atualizarDados(
+            String titulo,
+            Integer anoPublicacao,
+            String descricao,
+            Integer totalPaginas,
+            Set<Autor> autores,
+            Set<Categoria> categorias) {
+
+        this.titulo = titulo;
+        this.anoPublicacao = anoPublicacao;
+        this.descricao = descricao;
+        this.totalPaginas = totalPaginas;
+        this.autores = new HashSet<>(autores);
+        this.categorias = new HashSet<>(categorias);
+    }
 }

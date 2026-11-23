@@ -93,13 +93,15 @@ As rotas de Autor foram testadas manualmente pelo Swagger.
 
 ### Livro
 
-O cadastro e as consultas de Livro estão implementados:
+O cadastro, as consultas, a atualização completa e a exclusão de Livro estão implementados:
 
 | Método | Rota | Ação |
 | --- | --- | --- |
 | `GET` | `/livro` | Lista os livros com autores e categorias |
 | `GET` | `/livro/{id}` | Busca um livro pelo ID |
 | `POST` | `/livro` | Cadastra um livro com autores e categorias existentes |
+| `PUT` | `/livro/{id}` | Atualiza todos os dados de um livro |
+| `DELETE` | `/livro/{id}` | Exclui um livro e suas associações |
 
 Exemplo de cadastro:
 
@@ -127,7 +129,13 @@ O relacionamento é unidirecional no Java: Livro possui conjuntos de autores e c
 
 Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos autores e categorias. O cadastro foi testado manualmente pelo Swagger.
 
+O `PUT` recebe o mesmo formato do cadastro. Como é uma atualização completa, todos os campos devem ser enviados. Os autores e as categorias informados substituem as associações anteriores do livro. O ID do livro não muda. Essa rota também foi testada manualmente pelo Swagger.
+
 As consultas também devolvem `LivroResponse`. A busca de um ID inexistente retorna `404`. Os métodos de consulta usam uma transação somente de leitura para carregar os relacionamentos de Autor e Categoria antes de montar a resposta.
+
+Na exclusão, o JPA remove as linhas correspondentes de `Livro_Autor` e `Livro_Categoria` antes de remover o Livro. Os registros de Autor e Categoria permanecem no banco. Um livro inexistente retorna `404`, e uma exclusão concluída retorna `204`.
+
+As tabelas `Biblioteca` e `Leitura` ainda não estão mapeadas no Java, mas suas chaves estrangeiras já protegem o banco. Se uma delas estiver relacionada ao livro, o PostgreSQL impede a exclusão e a API está preparada para retornar `409`. Esse cenário ainda não foi testado manualmente.
 
 ## Decisões atuais
 
@@ -141,19 +149,21 @@ As consultas também devolvem `LivroResponse`. A busca de um ID inexistente reto
 - O ano de publicação pode ficar vazio para permitir o cadastro de obras ainda não lançadas.
 - Livro exige pelo menos uma categoria como regra da aplicação.
 - Não estamos usando exclusão em cascata nas tabelas associativas. Um autor ou uma categoria vinculada a um livro não deve ser excluído silenciosamente.
+- Excluir um Livro remove somente o Livro e suas linhas em `Livro_Autor` e `Livro_Categoria`.
+- Registros de Biblioteca e Leitura não são apagados automaticamente; eles impedem a exclusão do Livro relacionado.
 - Os scripts da pasta `database` são a referência do banco, mas não são executados automaticamente pela aplicação como migrations.
 
 ## Estado das próximas partes
 
-- `Livro`: cadastro e consultas implementados; atualizações e exclusão ainda não foram feitas;
+- `Livro`: cadastro, consultas, atualização completa e exclusão implementados; falta a atualização parcial;
 - `Usuario`: controller provisório;
 - `Biblioteca` e `Leitura`: ainda não possuem implementação Java.
 
-A próxima etapa de Livro é implementar a exclusão antes das atualizações.
+A próxima etapa de Livro é implementar a atualização parcial.
 
 ## Pendências
 
-- Implementar `PUT`, `PATCH` e `DELETE` de Livro.
+- Implementar `PATCH` de Livro.
 
 ## Cuidados ao trabalhar no projeto
 

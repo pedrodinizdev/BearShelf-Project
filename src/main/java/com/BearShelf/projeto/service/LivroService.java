@@ -1,15 +1,13 @@
 package com.BearShelf.projeto.service;
 
-import com.BearShelf.projeto.dto.AutorResumoResponse;
-import com.BearShelf.projeto.dto.CategoriaResumoResponse;
-import com.BearShelf.projeto.dto.LivroCadastroRequest;
-import com.BearShelf.projeto.dto.LivroResponse;
+import com.BearShelf.projeto.dto.*;
 import com.BearShelf.projeto.entity.Autor;
 import com.BearShelf.projeto.entity.Categoria;
 import com.BearShelf.projeto.entity.Livro;
 import com.BearShelf.projeto.repository.AutorRepository;
 import com.BearShelf.projeto.repository.CategoriaRepository;
 import com.BearShelf.projeto.repository.LivroRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -201,4 +199,42 @@ public class LivroService {
 
         return criarResponse(livro);
     }
+
+    //patch
+
+    @Transactional
+    public LivroResponse atualizarLivro(int id, LivroAtualizacaoRequest dados){
+        Livro livro = livroRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Livro não encontrado"));
+
+        String titulo = validarTitulo(dados.titulo());
+        Integer totalPaginas = validarTotalPaginas(dados.totalPaginas());
+        String descricao = tratarDescricao(dados.descricao());
+        Set<Autor> autores = buscarAutores(dados.autorIds());
+        Set<Categoria> categorias = buscarCategorias(dados.categoriaIds());
+
+        livro.atualizarDados(titulo, dados.anoPublicacao(), descricao, totalPaginas, autores, categorias);
+
+        Livro livroSalvo = livroRepository.save(livro);
+
+        return criarResponse(livroSalvo);
+    }
+
+    public void deletarLivro(int id) {
+        Livro livro = livroRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException
+                (HttpStatus.NOT_FOUND, "Livro não encontrado"));
+
+        try {
+            livroRepository.delete(livro);
+            //flush obriga o delete a ser executado pelo jpa na hr, se der erro para na hr ao inves de dps do fim do transactional
+            livroRepository.flush();
+        } catch (DataIntegrityViolationException erro) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT, "Não foi possível excluir o livro porque ele está em uso", erro
+            );
+        }
+    }
+
+
 }
