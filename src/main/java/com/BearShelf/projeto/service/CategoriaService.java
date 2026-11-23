@@ -11,13 +11,14 @@ import java.util.List;
 
 @Service
 public class CategoriaService {
-    // get
+
     private final CategoriaRepository repository;
 
     public CategoriaService(CategoriaRepository repository) {
         this.repository = repository;
     }
 
+    // get. Busca uma categoria pelo ID ou retorna 404.
     public Categoria buscarCategoria(int id) {
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(
@@ -29,7 +30,7 @@ public class CategoriaService {
         return repository.findAll();
     }
 
-    // post
+    // post. Valida o nome e cadastra uma categoria.
     public Categoria cadastrarCategoria(String nome) {
         if (nome == null || nome.isBlank()) {
             throw new ResponseStatusException(
@@ -47,6 +48,8 @@ public class CategoriaService {
 
         return repository.save(categoria);
     }
+
+    // Put. Valida e substitui o nome da categoria
     public Categoria atualizarCategoria(int id, String nome) {
         Categoria categoria = buscarCategoria(id);
 
@@ -71,6 +74,7 @@ public class CategoriaService {
         return repository.save(categoria);
     }
 
+    // DEl. Exclui a categoria se não houver restrição no banco.
     public void deletarCategoria(int id) {
         Categoria categoria = buscarCategoria(id);
 

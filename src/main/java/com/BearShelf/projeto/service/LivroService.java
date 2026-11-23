@@ -15,11 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.*;
 
 @Service
 public class LivroService {
@@ -38,6 +34,7 @@ public class LivroService {
         this.categoriaRepository = categoriaRepository;
     }
 
+    // Post. Valida os dados, relaciona autores e categorias e salva o livro
     @Transactional
     public LivroResponse cadastrarLivro(LivroCadastroRequest dados) {
         String titulo = validarTitulo(dados.titulo());
@@ -60,6 +57,7 @@ public class LivroService {
         return criarResponse(livroSalvo);
     }
 
+    // Validações, tratam título, páginas e descrição.
     private String validarTitulo(String titulo) {
         if (titulo == null || titulo.isBlank()) {
             throw new ResponseStatusException(
@@ -98,6 +96,7 @@ public class LivroService {
         return descricao.strip();
     }
 
+    //Busca e valida os autores informados.
     private Set<Autor> buscarAutores(Set<Integer> autorIds) {
         validarIdsObrigatorios(autorIds, "O livro deve ter pelo menos um autor");
 
@@ -112,6 +111,7 @@ public class LivroService {
         return new HashSet<>(autoresEncontrados);
     }
 
+    // Busca e valida as categorias informadas.
     private Set<Categoria> buscarCategorias(Set<Integer> categoriaIds) {
         validarIdsObrigatorios(
                 categoriaIds,
@@ -129,23 +129,42 @@ public class LivroService {
         return new HashSet<>(categoriasEncontradas);
     }
 
+    //Impede conjuntos de IDs vazios ou com valor nulo
     private void validarIdsObrigatorios(Set<Integer> ids, String mensagem) {
-        if (ids == null || ids.isEmpty() || ids.stream().anyMatch(Objects::isNull)) {
+        if (ids == null || ids.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, mensagem);
+        }
+
+        for (Integer id : ids) {
+            if (id == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, mensagem);
+            }
         }
     }
 
+    // Converte a entidade Livro no JSON devolvido pela API.
     private LivroResponse criarResponse(Livro livro) {
-        Set<AutorResumoResponse> autores = livro.getAutores().stream()
-                .map(autor -> new AutorResumoResponse(autor.getId(), autor.getNome()))
-                .collect(Collectors.toSet());
+        Set<AutorResumoResponse> autores = new HashSet<>();
 
-        Set<CategoriaResumoResponse> categorias = livro.getCategorias().stream()
-                .map(categoria -> new CategoriaResumoResponse(
-                        categoria.getId(),
-                        categoria.getNome()
-                ))
-                .collect(Collectors.toSet());
+        for (Autor autor : livro.getAutores()) {
+            AutorResumoResponse resumo = new AutorResumoResponse(
+                    autor.getId(),
+                    autor.getNome()
+            );
+
+            autores.add(resumo);
+        }
+
+        Set<CategoriaResumoResponse> categorias = new HashSet<>();
+
+        for (Categoria categoria : livro.getCategorias()) {
+            CategoriaResumoResponse resumo = new CategoriaResumoResponse(
+                    categoria.getId(),
+                    categoria.getNome()
+            );
+
+            categorias.add(resumo);
+        }
 
         return new LivroResponse(
                 livro.getId(),
@@ -156,5 +175,30 @@ public class LivroService {
                 autores,
                 categorias
         );
+    }
+
+    // Get. Lista os livros e busca um livro pelo ID.
+    @Transactional(readOnly = true)
+    // garante que o jpa vai carregar por conta do carregamento lazy
+    public List<LivroResponse> listarLivros() {
+        List<Livro> livros = livroRepository.findAll();
+        List<LivroResponse> respostas = new ArrayList<>();
+
+        for (Livro livro : livros) {
+            LivroResponse resposta = criarResponse(livro);
+            respostas.add(resposta);
+        }
+
+        return respostas;
+    }
+    @Transactional(readOnly = true)
+    public LivroResponse buscarLivro(int id) {
+        Livro livro = livroRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Livro não encontrado"
+                ));
+
+        return criarResponse(livro);
     }
 }

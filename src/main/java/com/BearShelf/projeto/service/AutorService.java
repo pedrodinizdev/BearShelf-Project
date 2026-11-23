@@ -18,6 +18,7 @@ public class AutorService {
         this.repository = repository;
     }
 
+    // Get. Lista os autores e busca um autor pelo ID
     public List<Autor> listarAutores() {
         return repository.findAll();
     }
@@ -30,6 +31,7 @@ public class AutorService {
                 ));
     }
 
+    // Post. valida os dados e cadastra um autor
     public Autor cadastrarAutor(String nome, String nacionalidade) {
         String nomeTratado = validarNome(nome);
         String nacionalidadeTratada = tratarNacionalidade(nacionalidade);
@@ -38,6 +40,7 @@ public class AutorService {
         return repository.save(autor);
     }
 
+    // Put. Valida e substitui os dados do autor
     public Autor atualizarAutor(int id, String nome, String nacionalidade) {
         Autor autor = buscarAutor(id);
         String nomeTratado = validarNome(nome);
@@ -47,6 +50,7 @@ public class AutorService {
         return repository.save(autor);
     }
 
+    // DEL. Exclui o autor se não houver restrição no banco
     public void deletarAutor(int id) {
         Autor autor = buscarAutor(id);
 
@@ -61,6 +65,7 @@ public class AutorService {
         }
     }
 
+    // Validação. tratam nome e nacionalidade
     private String validarNome(String nome) {
         if (nome == null || nome.isBlank()) {
             throw new ResponseStatusException(

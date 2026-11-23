@@ -93,10 +93,12 @@ As rotas de Autor foram testadas manualmente pelo Swagger.
 
 ### Livro
 
-O cadastro de Livro está implementado:
+O cadastro e as consultas de Livro estão implementados:
 
 | Método | Rota | Ação |
 | --- | --- | --- |
+| `GET` | `/livro` | Lista os livros com autores e categorias |
+| `GET` | `/livro/{id}` | Busca um livro pelo ID |
 | `POST` | `/livro` | Cadastra um livro com autores e categorias existentes |
 
 Exemplo de cadastro:
@@ -125,6 +127,8 @@ O relacionamento é unidirecional no Java: Livro possui conjuntos de autores e c
 
 Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos autores e categorias. O cadastro foi testado manualmente pelo Swagger.
 
+As consultas também devolvem `LivroResponse`. A busca de um ID inexistente retorna `404`. Os métodos de consulta usam uma transação somente de leitura para carregar os relacionamentos de Autor e Categoria antes de montar a resposta.
+
 ## Decisões atuais
 
 - Os endpoints usam os nomes das entidades no singular: `/autor`, `/categoria` e `/livro`.
@@ -141,15 +145,15 @@ Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos
 
 ## Estado das próximas partes
 
-- `Livro`: cadastro implementado; consultas, atualizações e exclusão ainda não foram feitas;
+- `Livro`: cadastro e consultas implementados; atualizações e exclusão ainda não foram feitas;
 - `Usuario`: controller provisório;
 - `Biblioteca` e `Leitura`: ainda não possuem implementação Java.
 
-A próxima etapa de Livro é implementar as consultas antes das atualizações e da exclusão.
+A próxima etapa de Livro é implementar a exclusão antes das atualizações.
 
 ## Pendências
 
-- Implementar `GET`, `PUT`, `PATCH` e `DELETE` de Livro.
+- Implementar `PUT`, `PATCH` e `DELETE` de Livro.
 
 ## Cuidados ao trabalhar no projeto
 
