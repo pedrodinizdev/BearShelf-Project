@@ -1,5 +1,6 @@
 package com.BearShelf.projeto.controller;
 
+import com.BearShelf.projeto.dto.LivroAtualizacaoParcialRequest;
 import com.BearShelf.projeto.dto.LivroAtualizacaoRequest;
 import com.BearShelf.projeto.dto.LivroCadastroRequest;
 import com.BearShelf.projeto.dto.LivroResponse;
@@ -43,6 +44,13 @@ public class LivrosController {
     }
 
     //patch
+    @PatchMapping("/{id}")
+    public LivroResponse atualizarLivroParcialmente(
+            @PathVariable int id,
+            @RequestBody LivroAtualizacaoParcialRequest dados) {
+
+        return service.atualizarLivroParcialmente(id, dados);
+    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)

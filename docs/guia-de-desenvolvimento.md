@@ -101,6 +101,7 @@ O cadastro, as consultas, a atualização completa e a exclusão de Livro estão
 | `GET` | `/livro/{id}` | Busca um livro pelo ID |
 | `POST` | `/livro` | Cadastra um livro com autores e categorias existentes |
 | `PUT` | `/livro/{id}` | Atualiza todos os dados de um livro |
+| `PATCH` | `/livro/{id}` | Atualiza somente os dados enviados |
 | `DELETE` | `/livro/{id}` | Exclui um livro e suas associações |
 
 Exemplo de cadastro:
@@ -131,6 +132,8 @@ Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos
 
 O `PUT` recebe o mesmo formato do cadastro. Como é uma atualização completa, todos os campos devem ser enviados. Os autores e as categorias informados substituem as associações anteriores do livro. O ID do livro não muda. Essa rota também foi testada manualmente pelo Swagger.
 
+No `PATCH`, os campos que não forem enviados mantêm seus valores atuais. Se `autorIds` ou `categoriaIds` forem informados, o conjunto recebido substitui as associações anteriores. A rota foi validada manualmente.
+
 As consultas também devolvem `LivroResponse`. A busca de um ID inexistente retorna `404`. Os métodos de consulta usam uma transação somente de leitura para carregar os relacionamentos de Autor e Categoria antes de montar a resposta.
 
 Na exclusão, o JPA remove as linhas correspondentes de `Livro_Autor` e `Livro_Categoria` antes de remover o Livro. Os registros de Autor e Categoria permanecem no banco. Um livro inexistente retorna `404`, e uma exclusão concluída retorna `204`.
@@ -153,17 +156,21 @@ As tabelas `Biblioteca` e `Leitura` ainda não estão mapeadas no Java, mas suas
 - Registros de Biblioteca e Leitura não são apagados automaticamente; eles impedem a exclusão do Livro relacionado.
 - Os scripts da pasta `database` são a referência do banco, mas não são executados automaticamente pela aplicação como migrations.
 
+### Usuario
+
+A entidade `Usuario` representa a tabela atual do banco. `id_usuario` continua como a chave interna gerada pelo PostgreSQL, enquanto `auth_id` guarda o UUID do Supabase Auth. As políticas RLS de Usuario e Biblioteca usam esse UUID para limitar o acesso aos dados do usuário autenticado. O controller existente ainda é provisório e não possui o CRUD implementado.
+
 ## Estado das próximas partes
 
-- `Livro`: cadastro, consultas, atualização completa e exclusão implementados; falta a atualização parcial;
-- `Usuario`: controller provisório;
+- `Livro`: CRUD implementado e validado;
+- `Usuario`: entidade criada com o vínculo ao Supabase Auth e controller provisório;
 - `Biblioteca` e `Leitura`: ainda não possuem implementação Java.
 
-A próxima etapa de Livro é implementar a atualização parcial.
+A próxima etapa é implementar o CRUD de Usuario usando o vínculo já existente com o Supabase Auth.
 
 ## Pendências
 
-- Implementar `PATCH` de Livro.
+- Criar DTOs de resposta para Categoria e Autor.
 
 ## Cuidados ao trabalhar no projeto
 

@@ -200,7 +200,60 @@ public class LivroService {
         return criarResponse(livro);
     }
 
-    //patch
+    // Patch
+    @Transactional
+    public LivroResponse atualizarLivroParcialmente(
+            int id,
+            LivroAtualizacaoParcialRequest dados) {
+
+        Livro livro = livroRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Livro não encontrado"));
+
+        String titulo = livro.getTitulo();
+        Integer anoPublicacao = livro.getAnoPublicacao();
+        String descricao = livro.getDescricao();
+        Integer totalPaginas = livro.getTotalPaginas();
+        Set<Autor> autores = livro.getAutores();
+        Set<Categoria> categorias = livro.getCategorias();
+
+        if (dados.titulo() != null) {
+            titulo = validarTitulo(dados.titulo());
+        }
+
+        if (dados.anoPublicacao() != null) {
+            anoPublicacao = dados.anoPublicacao();
+        }
+
+        if (dados.descricao() != null) {
+            descricao = tratarDescricao(dados.descricao());
+        }
+
+        if (dados.totalPaginas() != null) {
+            totalPaginas = validarTotalPaginas(dados.totalPaginas());
+        }
+
+        if (dados.autorIds() != null) {
+            autores = buscarAutores(dados.autorIds());
+        }
+
+        if (dados.categoriaIds() != null) {
+            categorias = buscarCategorias(dados.categoriaIds());
+        }
+
+        livro.atualizarDados(
+                titulo,
+                anoPublicacao,
+                descricao,
+                totalPaginas,
+                autores,
+                categorias);
+
+        Livro livroSalvo = livroRepository.save(livro);
+
+        return criarResponse(livroSalvo);
+    }
 
     @Transactional
     public LivroResponse atualizarLivro(int id, LivroAtualizacaoRequest dados){
