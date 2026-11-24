@@ -2,7 +2,6 @@ package com.BearShelf.projeto.controller;
 
 import com.BearShelf.projeto.dto.CategoriaAtualizacaoRequest;
 import com.BearShelf.projeto.dto.CategoriaCadastroRequest;
-import com.BearShelf.projeto.repository.CategoriaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import com.BearShelf.projeto.entity.Categoria;
@@ -25,10 +24,7 @@ public class CategoriaController {
     }
 
     @GetMapping("/{id}")
-    public Categoria inforCategoria(@PathVariable int id) {
-
-        // CategoriaService service = new CategoriaService();
-
+    public Categoria buscarCategoria(@PathVariable int id) {
         return service.buscarCategoria(id);
     }
 

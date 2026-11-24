@@ -34,11 +34,10 @@ public class Usuario {
     protected Usuario() {
     }
 
-    public Usuario(String nome, String email, LocalDate dataCadastro, UUID authId) {
+    public Usuario(String nome, String email, LocalDate dataCadastro) {
         this.nome = nome;
         this.email = email;
         this.dataCadastro = dataCadastro;
-        this.authId = authId;
     }
 
     public int getId() {

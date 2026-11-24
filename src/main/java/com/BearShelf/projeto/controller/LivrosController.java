@@ -36,14 +36,14 @@ public class LivrosController {
         return service.cadastrarLivro(dados);
     }
 
-    //put
+    // PUT
     @PutMapping("/{id}")
     public LivroResponse atualizarLivro(@PathVariable int id, @RequestBody LivroAtualizacaoRequest dados) {
 
         return service.atualizarLivro(id, dados);
     }
 
-    //patch
+    // PATCH
     @PatchMapping("/{id}")
     public LivroResponse atualizarLivroParcialmente(
             @PathVariable int id,
