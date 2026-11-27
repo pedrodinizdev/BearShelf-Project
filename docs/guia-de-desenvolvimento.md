@@ -93,7 +93,7 @@ As rotas de Autor foram testadas manualmente pelo Swagger.
 
 ### Livro
 
-O cadastro, as consultas, a atualização completa e a exclusão de Livro estão implementados:
+O CRUD de Livro está implementado:
 
 | Método | Rota | Ação |
 | --- | --- | --- |
@@ -158,19 +158,39 @@ As tabelas `Biblioteca` e `Leitura` ainda não estão mapeadas no Java, mas suas
 
 ### Usuario
 
-A entidade `Usuario` representa a tabela atual do banco. `id_usuario` continua como a chave interna gerada pelo PostgreSQL, enquanto `auth_id` guarda o UUID do Supabase Auth. As políticas RLS de Usuario e Biblioteca usam esse UUID para limitar o acesso aos dados do usuário autenticado. O controller existente ainda é provisório e não possui o CRUD implementado.
+A entidade `Usuario` representa a tabela atual do banco. `id_usuario` continua como a chave interna gerada pelo PostgreSQL, enquanto `auth_id` guarda o UUID do Supabase Auth.
+
+Rotas disponíveis:
+
+| Método | Rota | Ação |
+| --- | --- | --- |
+| `GET` | `/usuario` | Lista os usuários |
+| `GET` | `/usuario/{id}` | Busca um usuário pelo ID |
+| `POST` | `/usuario` | Cadastra um usuário |
+| `PUT` | `/usuario/{id}` | Atualiza nome e e-mail |
+| `PATCH` | `/usuario/{id}` | Atualiza somente os dados enviados |
+| `DELETE` | `/usuario/{id}` | Exclui um usuário sem dados relacionados |
+
+O cadastro recebe nome e e-mail. A data é preenchida pelo service e o `auth_id` fica vazio por enquanto, permitindo testar pelo Swagger sem criar antes uma conta no Supabase Auth. A resposta não expõe o `auth_id`.
+
+O nome e o e-mail são obrigatórios. O e-mail é salvo em letras minúsculas e não pode estar repetido.
+
+O `PUT` exige nome e e-mail, enquanto o `PATCH` mantém os campos que não forem enviados. A data de cadastro e o `auth_id` não são alterados nessas operações.
+
+Na exclusão, um usuário inexistente retorna `404`. Se houver registros relacionados em Biblioteca ou Leitura, o banco impede a exclusão e a API retorna `409`. As novas rotas ainda precisam ser testadas manualmente pelo Swagger.
 
 ## Estado das próximas partes
 
 - `Livro`: CRUD implementado e validado;
-- `Usuario`: entidade criada com o vínculo ao Supabase Auth e controller provisório;
+- `Usuario`: CRUD implementado; atualização e exclusão aguardam teste manual;
 - `Biblioteca` e `Leitura`: ainda não possuem implementação Java.
 
-A próxima etapa é implementar o CRUD de Usuario usando o vínculo já existente com o Supabase Auth.
+A próxima etapa é mapear Biblioteca e depois Leitura.
 
 ## Pendências
 
 - Criar DTOs de resposta para Categoria e Autor.
+- Testar `PUT`, `PATCH` e `DELETE` de Usuario pelo Swagger.
 
 ## Cuidados ao trabalhar no projeto
 

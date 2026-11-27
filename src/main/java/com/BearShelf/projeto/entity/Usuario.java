@@ -59,4 +59,9 @@ public class Usuario {
     public UUID getAuthId() {
         return authId;
     }
+
+    public void atualizarDados(String nome, String email) {
+        this.nome = nome;
+        this.email = email;
+    }
 }

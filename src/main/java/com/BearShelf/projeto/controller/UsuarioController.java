@@ -1,5 +1,6 @@
 package com.BearShelf.projeto.controller;
 
+import com.BearShelf.projeto.dto.UsuarioAtualizacaoRequest;
 import org.springframework.web.bind.annotation.*;
 import com.BearShelf.projeto.dto.UsuarioCadastroRequest;
 import com.BearShelf.projeto.dto.UsuarioResponse;
@@ -36,18 +37,25 @@ public class UsuarioController {
         return service.cadastrarUsuario(dados);
     }
 
-    @DeleteMapping()
-    public void deletarUsuario(){
+    @PutMapping("/{id}")
+    public UsuarioResponse atualizarUsuario(
+            @PathVariable int id,
+            @RequestBody UsuarioAtualizacaoRequest dados) {
 
+        return service.atualizarUsuario(id, dados);
     }
 
-    @PutMapping()
-    public void atualizarUsuario(){
+    @PatchMapping("/{id}")
+    public UsuarioResponse atualizarUsuarioParcialmente(
+            @PathVariable int id,
+            @RequestBody UsuarioAtualizacaoRequest dados) {
 
+        return service.atualizarUsuarioParcialmente(id, dados);
     }
-
-    @PatchMapping()
-    public void atualizarUsuarioParcialmente(){
-
+    
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deletarUsuario(@PathVariable int id) {
+        service.deletarUsuario(id);
     }
 }

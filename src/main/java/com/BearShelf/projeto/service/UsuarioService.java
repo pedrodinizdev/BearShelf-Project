@@ -1,9 +1,11 @@
 package com.BearShelf.projeto.service;
 
+import com.BearShelf.projeto.dto.UsuarioAtualizacaoRequest;
 import com.BearShelf.projeto.dto.UsuarioCadastroRequest;
 import com.BearShelf.projeto.dto.UsuarioResponse;
 import com.BearShelf.projeto.entity.Usuario;
 import com.BearShelf.projeto.repository.UsuarioRepository;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +24,7 @@ public class UsuarioService {
         this.repository = repository;
     }
 
+   //get
     public List<UsuarioResponse> listarUsuarios() {
         List<Usuario> usuarios = repository.findAll();
         List<UsuarioResponse> respostas = new ArrayList<>();
@@ -52,6 +55,7 @@ public class UsuarioService {
         );
     }
 
+    //post
     @Transactional
     public UsuarioResponse cadastrarUsuario(UsuarioCadastroRequest dados) {
         String nome = validarNome(dados.nome());
@@ -72,12 +76,7 @@ public class UsuarioService {
 
         Usuario usuarioSalvo = repository.save(usuario);
 
-        return new UsuarioResponse(
-                usuarioSalvo.getId(),
-                usuarioSalvo.getNome(),
-                usuarioSalvo.getEmail(),
-                usuarioSalvo.getDataCadastro()
-        );
+        return criarResponse(usuarioSalvo);
     }
 
     private String validarNome(String nome) {
@@ -118,5 +117,96 @@ public class UsuarioService {
         }
 
         return emailTratado;
+    }
+
+    //put
+    @Transactional
+    public UsuarioResponse atualizarUsuario(
+            int id,
+            UsuarioAtualizacaoRequest dados) {
+
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuário não encontrado"
+                ));
+
+        String nome = validarNome(dados.nome());
+        String email = validarEmail(dados.email());
+
+        if (!email.equalsIgnoreCase(usuario.getEmail())
+                && repository.existsByEmailIgnoreCase(email)) {
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "E-mail já cadastrado"
+            );
+        }
+
+        usuario.atualizarDados(nome, email);
+
+        Usuario usuarioSalvo = repository.save(usuario);
+
+        return criarResponse(usuarioSalvo);
+    }
+
+    // pathc
+    @Transactional
+    public UsuarioResponse atualizarUsuarioParcialmente(
+            int id,
+            UsuarioAtualizacaoRequest dados) {
+
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuário não encontrado"
+                ));
+
+        String nome = usuario.getNome();
+        String email = usuario.getEmail();
+
+        if (dados.nome() != null) {
+            nome = validarNome(dados.nome());
+        }
+
+        if (dados.email() != null) {
+            email = validarEmail(dados.email());
+
+            if (!email.equalsIgnoreCase(usuario.getEmail())
+                    && repository.existsByEmailIgnoreCase(email)) {
+
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "E-mail já cadastrado"
+                );
+            }
+        }
+
+        usuario.atualizarDados(nome, email);
+
+        Usuario usuarioSalvo = repository.save(usuario);
+
+        return criarResponse(usuarioSalvo);
+    }
+
+    //del
+    @Transactional
+    public void deletarUsuario(int id) {
+        Usuario usuario = repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Usuário não encontrado"
+                ));
+
+        try {
+            repository.delete(usuario);
+            repository.flush();
+        } catch (DataIntegrityViolationException erro) {
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Não foi possível excluir o usuário porque ele possui dados relacionados",
+                    erro
+            );
+        }
     }
 }
