@@ -89,8 +89,6 @@ Regras atuais:
 - dados inválidos retornam `400`;
 - uma exclusão impedida por relacionamento no banco retorna `409`.
 
-As rotas de Autor foram testadas manualmente pelo Swagger.
-
 ### Livro
 
 O CRUD de Livro está implementado:
@@ -128,11 +126,11 @@ Regras atuais:
 
 O relacionamento é unidirecional no Java: Livro possui conjuntos de autores e categorias. As tabelas `Livro_Autor` e `Livro_Categoria` guardam essas associações no banco.
 
-Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos autores e categorias. O cadastro foi testado manualmente pelo Swagger.
+Após o cadastro, a API devolve um `LivroResponse` com o ID gerado e resumos dos autores e categorias.
 
-O `PUT` recebe o mesmo formato do cadastro. Como é uma atualização completa, todos os campos devem ser enviados. Os autores e as categorias informados substituem as associações anteriores do livro. O ID do livro não muda. Essa rota também foi testada manualmente pelo Swagger.
+O `PUT` recebe o mesmo formato do cadastro. Como é uma atualização completa, todos os campos devem ser enviados. Os autores e as categorias informados substituem as associações anteriores do livro. O ID do livro não muda.
 
-No `PATCH`, os campos que não forem enviados mantêm seus valores atuais. Se `autorIds` ou `categoriaIds` forem informados, o conjunto recebido substitui as associações anteriores. A rota foi validada manualmente.
+No `PATCH`, os campos que não forem enviados mantêm seus valores atuais. Se `autorIds` ou `categoriaIds` forem informados, o conjunto recebido substitui as associações anteriores.
 
 As consultas também devolvem `LivroResponse`. A busca de um ID inexistente retorna `404`. Os métodos de consulta usam uma transação somente de leitura para carregar os relacionamentos de Autor e Categoria antes de montar a resposta.
 
@@ -178,11 +176,11 @@ O nome e o e-mail são obrigatórios. O e-mail é salvo em letras minúsculas e 
 
 O `PUT` exige nome e e-mail, enquanto o `PATCH` mantém os campos que não forem enviados. A data de cadastro e o `auth_id` não são alterados nessas operações.
 
-Na exclusão, um usuário inexistente retorna `404`. Se houver registros relacionados em Biblioteca ou Leitura, o banco impede a exclusão e a API retorna `409`. As novas rotas ainda precisam ser testadas manualmente pelo Swagger.
+Na exclusão, um usuário inexistente retorna `404`. Se houver registros relacionados em Biblioteca ou Leitura, o banco impede a exclusão e a API retorna `409`.
 
 ### Biblioteca
 
-Biblioteca está implementada e foi testada pelo Swagger:
+Rotas disponíveis:
 
 | Método | Rota | Ação |
 | --- | --- | --- |
@@ -312,22 +310,7 @@ A página não pode ser negativa nem ultrapassar `totalPaginas`. Quando `paginaA
 
 `LeituraResponse` devolve os IDs do usuário e do livro, o título, a página atual, o total de páginas e o último acesso. O horário é atualizado pelo service sempre que o progresso é alterado.
 
-Os métodos de escrita usam `@Transactional`, para que a operação seja desfeita se ocorrer um erro. As consultas usam `@Transactional(readOnly = true)`. O cadastro e o fluxo de remoção conjunta com Biblioteca foram testados pelo Swagger.
-
-## Estado das próximas partes
-
-- `Categoria`, `Autor` e `Livro`: CRUD implementado;
-- `Usuario`: CRUD implementado; atualização e exclusão aguardam teste manual;
-- `Biblioteca`: cadastro, consulta e exclusão implementados e validados;
-- `Leitura`: cadastro, consultas, atualização de progresso e exclusão implementados;
-- base inicial do backend de DAW2 concluída.
-
-As próximas partes previstas são a revisão das políticas de RLS e da integração com Supabase Auth, o Object Storage e o uso de Redis. Essas etapas ainda não mudam as regras descritas acima.
-
-## Pendências
-
-- Criar DTOs de resposta para Categoria e Autor.
-- Testar `PUT`, `PATCH` e `DELETE` de Usuario pelo Swagger.
+Os métodos de escrita usam `@Transactional`, para que a operação seja desfeita se ocorrer um erro. As consultas usam `@Transactional(readOnly = true)`.
 
 ## Cuidados ao trabalhar no projeto
 
