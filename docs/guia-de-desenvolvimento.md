@@ -138,11 +138,11 @@ As consultas também devolvem `LivroResponse`. A busca de um ID inexistente reto
 
 Na exclusão, o JPA remove as linhas correspondentes de `Livro_Autor` e `Livro_Categoria` antes de remover o Livro. Os registros de Autor e Categoria permanecem no banco. Um livro inexistente retorna `404`, e uma exclusão concluída retorna `204`.
 
-As tabelas `Biblioteca` e `Leitura` ainda não estão mapeadas no Java, mas suas chaves estrangeiras já protegem o banco. Se uma delas estiver relacionada ao livro, o PostgreSQL impede a exclusão e a API está preparada para retornar `409`. Esse cenário ainda não foi testado manualmente.
+Biblioteca e Leitura já estão mapeadas no Java. Como as duas possuem chaves estrangeiras para Livro, o PostgreSQL continua impedindo que um Livro global seja excluído enquanto houver dados de usuários relacionados a ele. Nesse caso, a API retorna `409`.
 
 ## Decisões atuais
 
-- Os endpoints usam os nomes das entidades no singular: `/autor`, `/categoria` e `/livro`.
+- Os endpoints usam os nomes das entidades no singular, como `/autor`, `/categoria`, `/livro`, `/usuario`, `/biblioteca` e `/leitura`.
 - Cadastro e atualização recebem DTOs, em vez de receber diretamente as entidades JPA.
 - As respostas de Livro usam DTOs para controlar os dados devolvidos no JSON.
 - As entidades usam os nomes de tabelas e colunas que já existem em `schema.sql`.
@@ -153,7 +153,8 @@ As tabelas `Biblioteca` e `Leitura` ainda não estão mapeadas no Java, mas suas
 - Livro exige pelo menos uma categoria como regra da aplicação.
 - Não estamos usando exclusão em cascata nas tabelas associativas. Um autor ou uma categoria vinculada a um livro não deve ser excluído silenciosamente.
 - Excluir um Livro remove somente o Livro e suas linhas em `Livro_Autor` e `Livro_Categoria`.
-- Registros de Biblioteca e Leitura não são apagados automaticamente; eles impedem a exclusão do Livro relacionado.
+- Excluir um Livro global não apaga Biblioteca ou Leitura de usuários. Esses registros impedem a exclusão do Livro relacionado.
+- Remover um livro da Biblioteca pessoal apaga também o progresso de Leitura daquele usuário e daquele livro. O Livro global e os dados dos outros usuários permanecem.
 - Os scripts da pasta `database` são a referência do banco, mas não são executados automaticamente pela aplicação como migrations.
 
 ### Usuario
@@ -179,13 +180,149 @@ O `PUT` exige nome e e-mail, enquanto o `PATCH` mantém os campos que não forem
 
 Na exclusão, um usuário inexistente retorna `404`. Se houver registros relacionados em Biblioteca ou Leitura, o banco impede a exclusão e a API retorna `409`. As novas rotas ainda precisam ser testadas manualmente pelo Swagger.
 
+### Biblioteca
+
+Biblioteca está implementada e foi testada pelo Swagger:
+
+| Método | Rota | Ação |
+| --- | --- | --- |
+| `POST` | `/biblioteca` | Adiciona um livro à biblioteca do usuário |
+| `GET` | `/biblioteca/usuario/{usuarioId}` | Lista a biblioteca do usuário |
+| `DELETE` | `/biblioteca/usuario/{usuarioId}/livro/{livroId}` | Remove um livro da biblioteca |
+
+O cadastro recebe `usuarioId` e `livroId`, valida a existência dos dois registros e preenche a data de adição. O mesmo livro não pode ser adicionado duas vezes à biblioteca do mesmo usuário; nesse caso, a API retorna `409`.
+
+Exemplo de cadastro:
+
+```json
+{
+  "usuarioId": 1,
+  "livroId": 16
+}
+```
+
+A resposta contém os dois IDs, o título do livro e a data em que ele foi adicionado. A API usa `BibliotecaResponse` para devolver apenas esses dados, sem expor diretamente as entidades JPA de Usuario e Livro.
+
+#### Por que Biblioteca é uma entidade
+
+`Biblioteca` liga Usuario e Livro, mas não é tratada apenas como uma tabela intermediária. Ela possui um dado próprio, `data_adicao`, e operações próprias na API. Por isso existe uma entidade `Biblioteca` e não apenas um `@ManyToMany` dentro de Usuario ou Livro.
+
+No banco, a chave primária é composta por `id_usuario` e `id_livro`, pois um livro só pode aparecer uma vez na biblioteca de cada usuário.
+
+A classe `BibliotecaId` representa esse par no Java. Ela não cria uma tabela nova. `@Embeddable` informa que seus campos podem fazer parte de outra entidade, e `@EmbeddedId` coloca esse objeto como a chave da entidade `Biblioteca`. A implementação de `Serializable` atende ao formato exigido pelo JPA para uma classe de chave composta.
+
+Na entidade, `@MapsId("usuarioId")` e `@MapsId("livroId")` ligam cada parte da chave aos relacionamentos com Usuario e Livro. Assim, os objetos `usuario` e `livro` usam as mesmas colunas `id_usuario` e `id_livro` que formam a chave primária; não são colunas duplicadas.
+
+Uma rota que identifique uma associação poderá receber os dois valores, por exemplo:
+
+```text
+/biblioteca/usuario/3/livro/14
+```
+
+O controller recebe `3` e `14` com `@PathVariable`, e o service monta a chave:
+
+```java
+BibliotecaId id = new BibliotecaId(usuarioId, livroId);
+```
+
+Essa nova instância pode representar a mesma chave de outra instância que o JPA já carregou ou está controlando. Por isso `BibliotecaId` implementa `equals()` e `hashCode()`: duas chaves com o mesmo usuário e o mesmo livro precisam ser tratadas como a mesma identidade, mesmo que tenham sido criadas em momentos diferentes.
+
+O `equals()` não faz parte de uma validação obrigatória executada antes de toda alteração. O próprio Java ou o JPA pode chamá-lo ao comparar chaves, controlar entidades já carregadas ou trabalhar com coleções. A consulta ao banco continua usando as duas colunas, equivalente a procurar por `id_usuario = 3` e `id_livro = 14`.
+
+O `hashCode()` gera um valor a partir dos mesmos dois IDs. Ele é usado por estruturas como `HashSet` e `HashMap` para localizar objetos. Como `equals()` considera usuário e livro, `hashCode()` também precisa considerar os dois.
+
+#### Fluxo das operações
+
+Ao adicionar um livro, o service busca Usuario e Livro pelos repositories, verifica se o par já existe, cria `Biblioteca` com a data atual e salva. Ao listar, `BibliotecaRepository` pesquisa os registros pelo ID do usuário e o service transforma cada entidade em `BibliotecaResponse`.
+
+Ao remover um livro da biblioteca, o service:
+
+1. monta `BibliotecaId` com os IDs recebidos pela rota;
+2. confirma que a associação existe;
+3. monta `LeituraId` com o mesmo par;
+4. remove o progresso de leitura, se ele existir;
+5. remove o registro de Biblioteca.
+
+As duas exclusões ficam no mesmo `@Transactional`. Se uma delas falhar, a operação inteira é desfeita. Essa regra foi escrita no service; não foi usado `cascade` para apagar o Livro, o Usuario ou dados de outras pessoas.
+
+### Leitura
+
+Leitura registra em qual página o usuário parou e quando ocorreu o último acesso.
+
+| Método | Rota | Ação |
+| --- | --- | --- |
+| `POST` | `/leitura` | Inicia a leitura de um livro da biblioteca |
+| `GET` | `/leitura/usuario/{usuarioId}` | Lista as leituras do usuário |
+| `GET` | `/leitura/usuario/{usuarioId}/livro/{livroId}` | Busca um progresso específico |
+| `PATCH` | `/leitura/usuario/{usuarioId}/livro/{livroId}` | Atualiza a página atual |
+| `DELETE` | `/leitura/usuario/{usuarioId}/livro/{livroId}` | Remove o progresso |
+
+Exemplo para iniciar uma leitura:
+
+```json
+{
+  "usuarioId": 1,
+  "livroId": 16,
+  "paginaAtual": 0
+}
+```
+
+Assim como Biblioteca, Leitura usa uma chave primária composta por `id_usuario` e `id_livro`. A classe `LeituraId` representa esse par e segue o mesmo mapeamento com `@Embeddable`, `@EmbeddedId`, `@MapsId`, `Serializable`, `equals()` e `hashCode()`.
+
+Não existe um ID numérico separado porque o próprio par já identifica o registro: um usuário possui no máximo um progresso para cada livro. O service cria `LeituraId` usando os IDs que chegaram pelo corpo da requisição ou pela rota e o repository usa os dois valores na consulta.
+
+O service usa três repositories, todos ligados ao mesmo banco:
+
+- `LeituraRepository`: consulta e salva o progresso;
+- `BibliotecaRepository`: confirma que o livro pertence à biblioteca do usuário;
+- `UsuarioRepository`: confirma a existência do usuário nas listagens.
+
+Ao iniciar uma leitura, o fluxo é:
+
+1. receber `usuarioId`, `livroId` e uma página inicial opcional;
+2. montar `BibliotecaId` e confirmar que o livro está na biblioteca;
+3. montar `LeituraId` e impedir uma leitura duplicada;
+4. usar a página enviada ou zero quando ela não for informada;
+5. impedir página negativa ou maior que o total de páginas do livro;
+6. salvar a leitura com `ultimoAcesso` preenchido pelo service.
+
+`biblioteca.getLivro()` devolve a entidade Livro ligada àquela associação. O service usa esse objeto para consultar `totalPaginas` durante a validação, sem precisar fazer outra busca pelo `LivroRepository`.
+
+Métodos atuais do service:
+
+| Método | Função |
+| --- | --- |
+| `iniciarLeitura` | Cria o progresso de um livro que já está na Biblioteca |
+| `listarLeituras` | Lista os progressos de um usuário |
+| `buscarLeitura` | Busca um progresso pelo par usuário e livro |
+| `atualizarProgresso` | Altera a página e atualiza `ultimoAcesso` |
+| `removerLeitura` | Exclui somente o registro de progresso |
+
+Para atualizar a página, o corpo do `PATCH` recebe somente:
+
+```json
+{
+  "paginaAtual": 120
+}
+```
+
+O avanço não acontece sozinho dentro do backend. `atualizarProgresso` é executado quando algum cliente chama essa rota. Durante os testes, o Swagger faz esse papel; futuramente, uma interface poderá enviar a página quando o usuário avançar ou fechar a leitura.
+
+A página não pode ser negativa nem ultrapassar `totalPaginas`. Quando `paginaAtual` não é enviada no cadastro, a leitura começa em zero. Uma tentativa de iniciar novamente o mesmo par usuário/livro retorna `409`, e uma leitura inexistente retorna `404`.
+
+`LeituraResponse` devolve os IDs do usuário e do livro, o título, a página atual, o total de páginas e o último acesso. O horário é atualizado pelo service sempre que o progresso é alterado.
+
+Os métodos de escrita usam `@Transactional`, para que a operação seja desfeita se ocorrer um erro. As consultas usam `@Transactional(readOnly = true)`. O cadastro e o fluxo de remoção conjunta com Biblioteca foram testados pelo Swagger.
+
 ## Estado das próximas partes
 
-- `Livro`: CRUD implementado e validado;
+- `Categoria`, `Autor` e `Livro`: CRUD implementado;
 - `Usuario`: CRUD implementado; atualização e exclusão aguardam teste manual;
-- `Biblioteca` e `Leitura`: ainda não possuem implementação Java.
+- `Biblioteca`: cadastro, consulta e exclusão implementados e validados;
+- `Leitura`: cadastro, consultas, atualização de progresso e exclusão implementados;
+- base inicial do backend de DAW2 concluída.
 
-A próxima etapa é mapear Biblioteca e depois Leitura.
+As próximas partes previstas são a revisão das políticas de RLS e da integração com Supabase Auth, o Object Storage e o uso de Redis. Essas etapas ainda não mudam as regras descritas acima.
 
 ## Pendências
 

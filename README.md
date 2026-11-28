@@ -39,8 +39,8 @@ O objetivo é permitir que usuários organizem seus livros digitais e realizem a
 
 ## Status
 
-Projeto em desenvolvimento. No momento, os CRUDs de Categoria, Autor, Livro e Usuario estão implementados. Biblioteca e Leitura ainda estão em construção.
+Projeto em desenvolvimento. A base do backend em Spring Boot está implementada: Categoria, Autor, Livro e Usuario possuem CRUD, Biblioteca permite adicionar, listar e remover livros, e Leitura controla o progresso de cada usuário.
 
-Para entender a organização do código, as decisões já tomadas e as pendências conhecidas, consulte o [guia de desenvolvimento](docs/guia-de-desenvolvimento.md).
+Para entender a organização do código, as decisões já tomadas e as pendências, consulte o [guia de desenvolvimento](docs/guia-de-desenvolvimento.md).
 
 Os modelos conceitual e lógico do banco também estão disponíveis na pasta [`docs`](docs/).
